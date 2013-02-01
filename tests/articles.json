@@ -1,0 +1,2 @@
+# Get the first two articles you find.
+{ "method": "get_content_article", "limit": 2 }
