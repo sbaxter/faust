@@ -3,7 +3,7 @@
 // -----
 // Faust version number. Defining this constant will unlock access
 //    to our includes.
-define( 'FAUST', '0.1' );
+define( 'FAUST', '0.2' );
 
 require_once( './etc/config.php' );
 require_once( './lib/daemon.php' );
@@ -19,12 +19,7 @@ $gRequest = request();
 
 // If we have a valid request, serve the response
 if ( empty( $gRequest ) ) {
-  header( 'HTTP/1.1 400 Bad Request' );
-  respond( array(
-    'error'        => true
-    , 'statusCode' => 400
-    , 'statusText' => 'Bad Request'
-  ));
+  respond( 400 );
 } else {
   serve( $gRequest );
 }
@@ -51,6 +46,7 @@ function request() {
   // Parse the GET to form a request.
   $method  = get( 'method' );
   $limit   = get( 'limit' );
+  $target  = get( 'target' );
 
   if ( !$isAjax || empty( $method ) || !in_array( $method, $gManifest ) ) {
     return false;
@@ -59,22 +55,29 @@ function request() {
   return array(
     'method'      => $method
     , 'limit'     => $limit ? $limit : DEFAULT_LIMIT
+    , 'target'    => $target
   );
 }
 
-function respond( $response, $json=false ) {
-// sets JSON headers and sends json to the requester.
+function respond( $status = 200, $data = '' ) {
+  global $gStatus;
+
+  // sets JSON headers and sends json to the requester.
+  header( $gStatus[ $status ], $status );
   header( 'Content-type: application/json' );
   header( 'Cache-Control: no-cache, must-revalidate' );
 
   // If we already have JSON, no need to encode.
-  echo $json ? $response : json_encode( $response );
+  echo $status === 200 ? $data : json_encode( array( 'error' => true ) );
 }
 
 function serve( $request ) {
 // Decides whether to serve the cached version or contact the daemon
   // The cache file
-  $cache = './cache/' . $request[ 'method' ] . '.json';
+  $cache = './cache/' . $request[ 'method' ];
+  $cache.= !empty( $request[ 'target' ] ) ? '_'.$request[ 'target' ] : '';
+  $cache.='.json';
+
   // Expiration time
   $expire = time() - CACHE_TIME;
 
@@ -86,6 +89,7 @@ function serve( $request ) {
   if ( $stat[9] <= $expire ) {
     // File is old, refresh by calling the daemon
     $outboundObj = new DaemonRequest( $request[ 'method' ] );
+    $outboundObj->target = $request[ 'target' ];
     $outboundObj->limit = $request[ 'limit' ];
 
     $json = askDaemon( json_encode( $outboundObj ) );
@@ -98,12 +102,7 @@ function serve( $request ) {
       $json = file_get_contents( $cache );
     } else {
       // We do not have a cache file or a json response
-      header( 'HTTP/1.1 404 Not Found' );
-      respond( array(
-        'error'        => true
-        , 'statusCode' => 404
-        , 'statusText' => 'File Not Found'
-      ));
+      respond( 404 );
 
       unlink( $cache ); // just in case?
       return false;
@@ -113,6 +112,5 @@ function serve( $request ) {
     $json = file_get_contents( $cache );
   }
 
-  header( 'HTTP/1.1 200 OK' );
-  respond( $json, true );
+  respond( 200, $json );
 }

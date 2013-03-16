@@ -30,12 +30,15 @@ $ch = curl_init( $url . '/?method=bogus' );
 curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 
 $output = curl_exec( $ch );
+$status = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+
 curl_close( $ch );
 
 $output = json_decode( $output, true );
-if ( !empty($output['statusCode']) && $output['statusCode'] === 400 ) {
+if ( $status === 400 ) { 
   emit( '...test passed!' );
 } else {
+  emit( 'status: ' . $status );
   emit( json_encode( $output ) );
   emit( '...test FAILED!' );
 }
@@ -48,12 +51,14 @@ $ch = curl_init( $url . '/?method=' . $method );
 curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 
 $output = curl_exec( $ch );
+$status = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
 curl_close( $ch );
 
 $output = json_decode( $output, true );
-if ( !empty($output['statusCode']) && $output['statusCode'] === 400 ) {
+if ( $status === 400 ) { 
   emit( '...test passed!' );
 } else {
+  emit( 'status: ' . $status );
   emit( json_encode( $output ) );
   emit( '..test FAILED!' );
 }
@@ -66,10 +71,11 @@ curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'X-Requested-With: XMLHttpRequest' ) );
 
 $output = curl_exec( $ch );
+$status = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
 curl_close( $ch );
 
 $output = json_decode( $output, true );
-if ( !empty($output['DEBUG']) ) {
+if ( $status === 200 && !empty($output['DEBUG']) ) {
   emit( '...test passed!' );
 } else {
   emit( json_encode( $output ) );

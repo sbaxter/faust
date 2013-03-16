@@ -10,6 +10,15 @@ $gManifest = array(
   'echo'
 );
 
+// Available HTTP Status codes
+$gStatus = array(
+  200   => 'HTTP/1.1 200 OK'
+  , 400 => 'HTTP/1.1 400 Bad Request'
+  , 403 => 'HTTP/1.1 403 Forbidden'
+  , 404 => 'HTTP/1.1 404 Not Found'
+  , 500 => 'HTTP/1.1 500 Internal Server Error'
+);
+
 // Host machine of the daemon.
 define( 'HOST', '127.0.0.1' );
 

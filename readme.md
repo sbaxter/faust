@@ -5,6 +5,7 @@ Faust is a service that converts AJAX requests into PHP-Daemon requests.
 
 ```
 .
+|-- .htaccess
 |-- index.php
 |-- cache
 |-- docs
@@ -19,7 +20,7 @@ Faust is a service that converts AJAX requests into PHP-Daemon requests.
 |   |-- input.php
 |   `-- socket.php
 |
-|-- tests
+`-- tests
     |-- daemon.php
     |-- curl.php
     |-- echo.json
